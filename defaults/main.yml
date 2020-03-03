@@ -1,2 +1,76 @@
 ---
 # defaults file for app-automysqlbackup
+
+# Variables from the app-mysql role.  Carried into defaults
+# here in case that role isn't used.
+mysql_port: "3306"
+
+# Uses GitHub HTTPS by default, but can be configured to use SSH or
+# a local mirror.
+automysqlbackup_clone_repo: https://github.com/sixhop/AutoMySQLBackup.git
+
+# The release tag or commit number to use
+automysqlbackup_version: 3.0.7
+
+# Path to the automysqlbackup config file.
+# Run this role multiple times with different values for this
+# to accommodate the case where multiple MySQL instances run 
+# on the same host.
+automysqlbackup_config_path: /etc/automysqlbackup/automysqlbackup.conf
+
+# Variables are identical to those in automysqlbackup.conf.
+automysqlbackup_config :
+  #CONFIG_mysql_dump_encrypted_login : 'no'
+  #CONFIG_mysql_dump_login_path : 'automysqldump'
+  #CONFIG_mysql_dump_login_path_file : ''
+  #CONFIG_mysql_dump_username : 'root'
+  #CONFIG_mysql_dump_password : ''
+  #CONFIG_mysql_dump_host : 'localhost'
+  #CONFIG_mysql_dump_host_friendly : ''
+  CONFIG_backup_dir : '/var/backup/db'
+  #CONFIG_multicore : 'yes'
+  #CONFIG_multicore_threads : 2
+  #CONFIG_db_names : ()
+  #CONFIG_db_month_names : ()
+  CONFIG_db_exclude : ( 'performance_schema' 'information_schema' )
+  CONFIG_db_exclude_pattern : ()
+  #CONFIG_table_exclude : ()
+  #CONFIG_do_monthly : "01"
+  #CONFIG_do_weekly : "5"
+  #CONFIG_rotation_daily : 6
+  #CONFIG_rotation_weekly : 35
+  #CONFIG_rotation_monthly : 150
+  #CONFIG_mysql_dump_port : "{{ mysql_port }}"
+  #CONFIG_mysql_dump_commcomp : 'no'
+  #CONFIG_mysql_dump_usessl : 'no'
+  #CONFIG_mysql_dump_socket : ''
+  #CONFIG_mysql_dump_max_allowed_packet : ''
+  #CONFIG_mysql_dump_single_transaction : 'no'
+  #CONFIG_mysql_dump_master_data : 
+  #CONFIG_mysql_dump_full_schema : 'yes'
+  #CONFIG_mysql_dump_dbstatus : 'yes'
+  #CONFIG_mysql_dump_create_database : 'no'
+  #CONFIG_mysql_dump_add_drop_database : 'no'
+  #CONFIG_mysql_dump_use_separate_dirs : 'yes'
+  #CONFIG_mysql_dump_compression : 'gzip'
+  #CONFIG_mysql_dump_latest : 'no'
+  #CONFIG_mysql_dump_latest_clean_filenames : 'no'
+  #CONFIG_mysql_dump_differential : 'no'
+  #CONFIG_mailcontent : 'stdout'
+  #CONFIG_mail_maxattsize : 4000
+  #CONFIG_mail_splitandtar : 'yes'
+  #CONFIG_mail_use_uuencoded_attachments : 'no'
+  #CONFIG_mail_address : 'root'
+  #CONFIG_encrypt : 'no'
+  #CONFIG_encrypt_password : 'password0123'
+  #CONFIG_backup_local_files : ()
+  #CONFIG_prebackup : "/etc/mysql-backup-pre"
+  #CONFIG_postbackup : "/etc/mysql-backup-post"
+  #CONFIG_dryrun : 1
+
+automysqlbackup_cron_minute: "30"
+automysqlbackup_cron_hour: "00"
+automysqlbackup_cron_day: "*"
+automysqlbackup_cron_month: "*"
+automysqlbackup_cron_weekday: "*"
+

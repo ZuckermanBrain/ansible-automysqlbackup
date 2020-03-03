@@ -1,2 +1,81 @@
 ---
 # tasks file for app-automysqlbackup
+
+# Variable configuration.
+- name: Include OS-specific variables.
+  include_vars: "{{ item }}"
+  with_first_found:
+    - files:
+        - "vars/{{ ansible_os_family }}-{{ ansible_distribution_major_version }}.yml"
+        - "vars/{{ ansible_os_family }}.yml"
+      skip: true
+
+- name: Define mysql_daemon.
+  set_fact:
+    mysql_daemon: "{{ __mysql_daemon }}"
+  when: mysql_daemon is not defined
+
+- name: Ensure that MySQL is running and enabled
+  service:
+    name: "{{ mysql_daemon }}"
+    state: started
+    enabled: yes
+
+- name: Ensure that the MySQL port is open.
+  wait_for:
+    port: "{{ mysql_port }}"
+    state: started
+    timeout: 10
+
+- name: Ensure that git is installed.
+  package:
+    name: git
+    state: present
+
+- name: Clone down the AutoMySQLBackup git repo
+  git:
+    repo: "{{ automysqlbackup_clone_repo }}"
+    dest: /tmp/automysqlbackup
+    version: "{{ automysqlbackup_version }}"
+
+- name: Create the /etc/automysqlbackup directory.
+  file:
+    path: /etc/automysqlbackup
+    state: directory
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy in the automysqlbackup.conf file.
+  copy:
+    src: /tmp/automysqlbackup/automysqlbackup
+    dest: /etc/automysqlbackup/automysqlbackup.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Copy the automysqlbackup file to /usr/local/bin and make executable.
+  copy:
+    src: /tmp/automysqlbackup/automysqlbackup
+    dest: /usr/local/bin/automysqlbackup
+    owner: root
+    group: root
+    mode: '0755"
+
+- name: Add in custom config file.
+  template:
+    src: automysqlbackup.conf.j2
+    dest: "{{ automysqlbackup_config_path }}"
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Add cron job to invoke automyqlbackup at specific time
+  cron:
+    name: "automysqlbackup using {{ automysqlbackup_config_path }}"
+    minute: "{{ automysqlbackup_cron_minute }}"
+    hour: "{{ automysqlbackup_cron_hour }}"
+    day: "{{ automysqlbackup_cron_day }}"
+    month: "{{ automysqlbackup_cron_month }}"
+    weekday: "{{ automysqlbackup_cron_weekday }}"
+    job: "/usr/local/bin/automysqlbackup {{ automysqlbackup_config_path }}"
