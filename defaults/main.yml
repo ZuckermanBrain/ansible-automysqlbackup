@@ -19,10 +19,16 @@ mysql_port: "3306"
 
 # Uses GitHub HTTPS by default, but can be configured to use SSH or
 # a local mirror.
-automysqlbackup_clone_repo: https://github.com/sixhop/AutoMySQLBackup.git
+automysqlbackup_clone_repo: https://github.com/ZuckermanBrain/AutoMySQLBackup
 
 # The release tag or commit number to use
 automysqlbackup_version: 3.0.7
+
+# The service user to run backups.
+automysqlbackup_service_account: mysqlbackup
+
+# Default value for backup directory.
+automysqlbackup_home_dir : '/var/backup/db'
 
 # Path to the automysqlbackup config file.
 # Run this role multiple times with different values for this
@@ -39,7 +45,7 @@ automysqlbackup_config :
   #CONFIG_mysql_dump_password : ''
   #CONFIG_mysql_dump_host : 'localhost'
   #CONFIG_mysql_dump_host_friendly : ''
-  CONFIG_backup_dir : '/var/backup/db'
+  CONFIG_backup_dir : "{{ automysqlbackup_home_dir }}"
   #CONFIG_multicore : 'yes'
   #CONFIG_multicore_threads : 2
   #CONFIG_db_names : ()
@@ -54,7 +60,7 @@ automysqlbackup_config :
   #CONFIG_rotation_monthly : 150
   #CONFIG_mysql_dump_port : "{{ mysql_port }}"
   #CONFIG_mysql_dump_commcomp : 'no'
-  #CONFIG_mysql_dump_usessl : 'no'
+  #CONFIG_mysql_dump_usessl : 'yes'
   #CONFIG_mysql_dump_socket : ''
   #CONFIG_mysql_dump_max_allowed_packet : ''
   #CONFIG_mysql_dump_single_transaction : 'no'
@@ -73,16 +79,18 @@ automysqlbackup_config :
   #CONFIG_mail_splitandtar : 'yes'
   #CONFIG_mail_use_uuencoded_attachments : 'no'
   #CONFIG_mail_address : 'root'
-  #CONFIG_encrypt : 'no'
-  #CONFIG_encrypt_password : 'password0123'
   #CONFIG_backup_local_files : ()
-  #CONFIG_prebackup : "/etc/mysql-backup-pre"
-  #CONFIG_postbackup : "/etc/mysql-backup-post"
+  #CONFIG_prebackup : "/etc/automysqlbackup/mysql-backup-pre"
+  #CONFIG_postbackup : "/etc/automysqlbackup/mysql-backup-post"
   #CONFIG_dryrun : 1
+
+# Inline script for prebackup
+#automysqlbackup_prebackup: ''
+# Inline script for postbackup
+#automysqlbackup_postbackup: ''
 
 automysqlbackup_cron_minute: "30"
 automysqlbackup_cron_hour: "00"
 automysqlbackup_cron_day: "*"
 automysqlbackup_cron_month: "*"
 automysqlbackup_cron_weekday: "*"
-

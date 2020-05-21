@@ -22,6 +22,18 @@
         - "vars/{{ ansible_os_family }}.yml"
       skip: true
 
+- name: Create an automysqlbackup service user.
+  user:
+    name: "{{ automysqlbackup_service_account }}"
+    home: "{{ automysqlbackup_home_dir }}"
+    shell: /bin/bash
+
+- name: Ensure that only the service user can read its home directory.
+  file:
+    path: "{{ automysqlbackup_home_dir }}"
+    state: directory
+    mode: '0755'
+
 - name: Define mysql_daemon.
   set_fact:
     mysql_daemon: "{{ __mysql_daemon }}"
@@ -49,38 +61,60 @@
     repo: "{{ automysqlbackup_clone_repo }}"
     dest: /tmp/automysqlbackup
     version: "{{ automysqlbackup_version }}"
+  become: yes
+  become_user: "{{ automysqlbackup_service_account }}"
 
 - name: Create the /etc/automysqlbackup directory.
   file:
     path: /etc/automysqlbackup
     state: directory
-    owner: root
-    group: root
-    mode: '0644'
+    owner: "{{ automysqlbackup_service_account }}"
+    group: "{{ automysqlbackup_service_account }}"
+    mode: '0700'
+
+- name: Copy in prebackup script
+  copy:
+    content: '{{ automysqlbackup_prebackup }}'
+    dest: "{{ automysqlbackup_config['CONFIG_prebackup'] }}"
+    owner: "{{ automysqlbackup_service_account }}"
+    group: "{{ automysqlbackup_service_account }}"
+    mode: '0755'
+  when: automysqlbackup_prebackup is defined and automysqlbackup_config['CONFIG_prebackup'] is defined
+
+- name: Copy in postbackup script
+  copy:
+    content: '{{ automysqlbackup_postbackup }}'
+    dest: "{{ automysqlbackup_config['CONFIG_postbackup'] }}"
+    owner: "{{ automysqlbackup_service_account }}"
+    group: "{{ automysqlbackup_service_account }}"
+    mode: '0755'
+  when: automysqlbackup_postbackup is defined and automysqlbackup_config['CONFIG_postbackup'] is defined
 
 - name: Copy in the automysqlbackup.conf file.
   copy:
-    src: /tmp/automysqlbackup/automysqlbackup
+    remote_src: yes
+    src: /tmp/automysqlbackup/automysqlbackup.conf
     dest: /etc/automysqlbackup/automysqlbackup.conf
-    owner: root
-    group: root
-    mode: '0644'
+    owner: "{{ automysqlbackup_service_account }}"
+    group: "{{ automysqlbackup_service_account }}"
+    mode: '0600'
 
 - name: Copy the automysqlbackup file to /usr/local/bin and make executable.
   copy:
+    remote_src: yes
     src: /tmp/automysqlbackup/automysqlbackup
     dest: /usr/local/bin/automysqlbackup
-    owner: root
-    group: root
-    mode: '0755"
+    owner: "{{ automysqlbackup_service_account }}"
+    group: "{{ automysqlbackup_service_account }}"
+    mode: '0755'
 
 - name: Add in custom config file.
   template:
     src: automysqlbackup.conf.j2
     dest: "{{ automysqlbackup_config_path }}"
-    owner: root
-    group: root
-    mode: '0644'
+    owner: "{{ automysqlbackup_service_account }}"
+    group: "{{ automysqlbackup_service_account }}"
+    mode: '0600'
 
 - name: Add cron job to invoke automyqlbackup at specific time
   cron:
@@ -91,3 +125,5 @@
     month: "{{ automysqlbackup_cron_month }}"
     weekday: "{{ automysqlbackup_cron_weekday }}"
     job: "/usr/local/bin/automysqlbackup {{ automysqlbackup_config_path }}"
+    user: "{{ automysqlbackup_service_account }}"
+
