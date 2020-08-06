@@ -36,9 +36,9 @@
 
 - name: Ensure that backups directory exists
   file:
-    dest: "{{ automysqlbackup_config['CONFIG_backup_dir'] }}"
+    path: "{{ automysqlbackup_config['CONFIG_backup_dir'] }}"
     state: directory
-    owner:"{{ automysqlbackup_service_account }}"
+    owner: "{{ automysqlbackup_service_account }}"
     group: "{{ automysqlbackup_service_account }}"
     mode: '0750'
 
